@@ -1,0 +1,13 @@
+.venv/
+data_raw/
+data/xadrez.txt
+__pycache__/
+.ipynb_checkpoints/
+docs/*.aux
+docs/*.log
+docs/*.fls
+docs/*.fdb_latexmk
+docs/*.xdv
+docs/*.toc
+.DS_Store
+node_modules/
