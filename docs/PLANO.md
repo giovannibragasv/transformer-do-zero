@@ -29,9 +29,9 @@ lang: pt-BR
 
 # 2. Preparação
 
-As datas abaixo são relativas ao dia do workshop (D).
+O workshop acontece em 14 de outubro de 2026 (D). As datas entre parênteses são as correspondentes no calendário.
 
-## D − 14: repositório
+## D − 14 (30/09): repositório
 
 1. O repositório público já existe: <https://github.com/giovannibragasv/transformer-do-zero>. O usuário `giovannibragasv` já está configurado em `scripts/gerar_notebooks.py`, `slides/gerar_slides.js` e `README.md`.
 2. Se algo mudar, regenere os artefatos:
@@ -45,7 +45,7 @@ As datas abaixo são relativas ao dia do workshop (D).
 4. Abrir `https://colab.research.google.com/github/giovannibragasv/transformer-do-zero/blob/main/workshop_aluno.ipynb` e confirmar que o notebook abre e que a primeira célula clona o repositório.
 5. Gerar um link curto (e, se possível, um QR code) para esse endereço e atualizar o slide 4.
 
-## D − 10: modelo de referência
+## D − 10 (04/10): modelo de referência
 
 1. Abrir `pretreino_referencia.ipynb` no Colab com GPU.
 2. Executar as células. O treino dura 60 minutos e salva checkpoints a cada 10 minutos.
@@ -54,21 +54,21 @@ As datas abaixo são relativas ao dia do workshop (D).
 
 Se o treino for interrompido, o último checkpoint salvo já é utilizável. Se o modelo não estiver disponível no dia, o notebook usa automaticamente o modelo treinado pela turma.
 
-## D − 7: ensaio
+## D − 7 (07/10): ensaio
 
 1. Com uma conta Google diferente da sua, sem nada salvo no Drive, executar o `workshop_aluno.ipynb` do início ao fim como se fosse um participante. Resolver os exercícios sem consultar o gabarito e cronometrar cada parte.
 2. Executar o `workshop_gabarito.ipynb` inteiro e salvar a versão executada (com as saídas). Ela serve para demonstração caso o Colab fique instável no dia.
 3. Ensaiar a exposição com os slides em voz alta. As notas do apresentador trazem o conteúdo de cada fala; o tempo de cada bloco teórico é de 10 minutos.
 4. Fazer o estudo descrito no guia (`GUIA_DE_ESTUDOS.md`), em especial a seção de perguntas difíceis.
 
-## D − 3: logística
+## D − 3 (11/10): logística
 
 - Confirmar com a organização o laboratório, o número de máquinas, o projetor e a conexão com a internet. Cada participante baixa cerca de 30 MB na primeira célula; para 40 pessoas, são pouco mais de 1 GB em alguns minutos.
 - Confirmar que o navegador dos laboratórios permite login em contas Google.
 - Reunir os monitores por 30 minutos: percorrer o gabarito, combinar a divisão da sala e apresentar a lista de erros comuns (seção 5).
 - Preparar um cartaz ou slide com o link curto do notebook.
 
-## Dia D
+## Dia D (14/10)
 
 - Chegar 30 minutos antes. Testar o projetor com os slides e com o Colab (fonte do notebook ampliada para 125% ou mais).
 - Deixar abertos em abas: slides, notebook do aluno, gabarito executado e o notebook de gabarito pronto para a demonstração ao vivo do slide 3.

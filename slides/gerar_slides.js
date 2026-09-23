@@ -128,7 +128,7 @@ Mensagem central do dia: a mesma equação de uma linha que aparece no artigo de
   t(s, "Attention is All You Need", MX, 1.75, 7.6, 1.0, { fontFace: F.title, fontSize: 48, bold: true });
   t(s, "Construindo um Transformer do zero", MX, 2.75, 7.6, 0.7, { fontFace: F.title, fontSize: 28, color: C.muted, italic: true });
   t(s, "Giovanni Vasconcelos", MX, 5.3, 6, 0.4, { fontSize: 18, bold: true });
-  t(s, "Outubro de 2026", MX, 5.72, 6, 0.4, { fontSize: 15, color: C.muted });
+  t(s, "14 de outubro de 2026", MX, 5.72, 6, 0.4, { fontSize: 15, color: C.muted });
   // motivo: matriz de atenção causal ao lado de um tabuleiro
   const M = [];
   for (let i = 0; i < 8; i++) { const r = []; for (let j = 0; j < 8; j++) r.push(j > i ? 0 : [0.9, 0.3, 0.6, 0.15, 0.8, 0.35, 0.55, 0.2][(i * 3 + j * 5) % 8]); M.push(r); }
