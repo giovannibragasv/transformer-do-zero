@@ -45,8 +45,9 @@ class Head(nn.Module):
         self.query = nn.Linear(cfg.n_embd, head_size, bias=False)
         self.key = nn.Linear(cfg.n_embd, head_size, bias=False)
         self.value = nn.Linear(cfg.n_embd, head_size, bias=False)
-        # máscara causal: 1 onde pode olhar (passado e presente), 0 no futuro
-        self.register_buffer("tril", torch.tril(torch.ones(cfg.block_size, cfg.block_size)))
+        # máscara causal: 1 onde pode olhar (passado e presente), 0 no futuro.
+        # persistent=False: não é parâmetro aprendido, então não vai para o arquivo salvo
+        self.register_buffer("tril", torch.tril(torch.ones(cfg.block_size, cfg.block_size)), persistent=False)
         self.dropout = nn.Dropout(cfg.dropout)
         self.att = None  # pesos da última chamada, usados nas visualizações
 

@@ -17,7 +17,8 @@ from mini_gpt import GPT, Config, DadosXadrez, taxa_de_legalidade  # noqa: E402
 
 def salvar(model, cfg, dados, caminho):
     Path(caminho).parent.mkdir(parents=True, exist_ok=True)
-    sd = {k: v.detach().cpu() for k, v in model.state_dict().items()}
+    # fp16 reduz o arquivo à metade; ao carregar, load_state_dict converte de volta para fp32
+    sd = {k: v.detach().cpu().half() if v.is_floating_point() else v.detach().cpu() for k, v in model.state_dict().items()}
     torch.save({"config": cfg.__dict__, "chars": dados.tok.chars, "state_dict": sd}, caminho)
     print("salvo em", caminho, flush=True)
 

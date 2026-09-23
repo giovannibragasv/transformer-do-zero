@@ -337,7 +337,7 @@ class Head(nn.Module):
         self.query = nn.Linear(cfg.n_embd, head_size, bias=False)
         self.key   = nn.Linear(cfg.n_embd, head_size, bias=False)
         self.value = nn.Linear(cfg.n_embd, head_size, bias=False)
-        self.register_buffer("tril", torch.tril(torch.ones(cfg.block_size, cfg.block_size)))
+        self.register_buffer("tril", torch.tril(torch.ones(cfg.block_size, cfg.block_size)), persistent=False)
         self.dropout = nn.Dropout(cfg.dropout)
         self.att = None
 
@@ -362,7 +362,7 @@ class Head(nn.Module):
         self.query = nn.Linear(cfg.n_embd, head_size, bias=False)
         self.key   = nn.Linear(cfg.n_embd, head_size, bias=False)
         self.value = nn.Linear(cfg.n_embd, head_size, bias=False)
-        self.register_buffer("tril", torch.tril(torch.ones(cfg.block_size, cfg.block_size)))
+        self.register_buffer("tril", torch.tril(torch.ones(cfg.block_size, cfg.block_size)), persistent=False)
         self.dropout = nn.Dropout(cfg.dropout)
         self.att = None
 
