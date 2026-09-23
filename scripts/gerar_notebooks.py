@@ -793,38 +793,21 @@ else:
 md(r"""
 ## 3.5 Partida contra o modelo
 
-Digite os lances em notação algébrica (`e4`, `Nf3`, `exd5`, `O-O`, `Qxf7#`) ou `sair` para encerrar. Se o modelo
-produzir lances ilegais em dez tentativas seguidas, um lance legal é sorteado em seu lugar, e isso é indicado
-abaixo do tabuleiro.
+Arraste uma peça até a casa de destino, ou clique na peça e depois na casa. As casas marcadas indicam os lances
+legais. Quem preferir pode digitar o lance em notação algébrica (`e4`, `Nf3`, `O-O`) na caixa ao lado do
+tabuleiro. Os lances do modelo aparecem em vermelho no histórico. Se o modelo produzir lances ilegais em dez
+tentativas seguidas, um lance legal é sorteado em seu lugar, e isso é indicado no painel.
+
+Os botões permitem começar uma nova partida, desfazer o último par de lances e trocar de cor. Para jogar contra
+o modelo que você treinou na seção 3.2, troque `ref, tok_ref` por `modelo, tok`.
 """)
 
 ambos(r"""
 # [Executar]
-def jogar(modelo, tok, humano=chess.WHITE, temperatura=0.3):
-    board, aviso = chess.Board(), ""
-    while not board.is_game_over():
-        clear_output(wait=True)
-        display(SVG(chess.svg.board(board, size=360, flipped=humano == chess.BLACK,
-                                    lastmove=board.peek() if board.move_stack else None)))
-        print(historico_pgn(board)[-120:]); print(aviso)
-        if board.turn == humano:
-            s = input("Seu lance: ").strip()
-            if s == "sair":
-                return
-            try:
-                board.push_san(s); aviso = ""
-            except ValueError:
-                aviso = f"'{s}' não é um lance legal nesta posição."
-        else:
-            lance, ok = lance_do_modelo(modelo, tok, board, temperatura, device=device)
-            aviso = "" if ok else "O modelo não produziu um lance legal; foi sorteado um lance."
-            board.push(lance)
-    clear_output(wait=True)
-    display(SVG(chess.svg.board(board, size=360)))
-    print("Fim de jogo:", board.result())
+from tabuleiro import jogar_contra
 
 if not RAPIDO:
-    jogar(ref, tok_ref)
+    jogar_contra(ref, tok_ref, humano="brancas", temperatura=0.3, device=device)
 """)
 
 md(r"""

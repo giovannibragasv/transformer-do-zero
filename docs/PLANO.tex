@@ -149,6 +149,8 @@ Colab (executar uma vez, antes do evento) \\
 \texttt{mini\_gpt.py} & Implementação de referência, importada pelas
 células de recuperação \\
 \texttt{checagens.py} & Verificações automáticas dos exercícios \\
+\texttt{tabuleiro.py} & Tabuleiro interativo (arrastar e soltar) para
+jogar contra o modelo no Colab \\
 \texttt{slides/attention\_workshop.pptx} & Apresentação (30 slides, com
 notas do apresentador em todos) \\
 \texttt{docs/GUIA\_DE\_ESTUDOS.md} & Guia de estudos para a preparação
@@ -415,6 +417,10 @@ como plano B; o notebook funciona após \emph{Arquivos \textgreater{}
 Upload} do zip e descompactação \\
 Colab fora do ar & Projetar o gabarito já executado (salvo no ensaio) e
 conduzir a Parte 3 como demonstração \\
+Tabuleiro interativo não responde (falha na comunicação com o Colab) &
+Em uma nova célula:
+\texttt{from\ tabuleiro\ import\ jogar\_texto;\ jogar\_texto(ref,\ tok\_ref,\ device=device)},
+versão com lances digitados \\
 Modelo de referência ausente & O notebook usa automaticamente o modelo
 treinado pela turma; a comparação da seção 3.4 fica prejudicada, mas
 nada quebra \\

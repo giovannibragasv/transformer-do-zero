@@ -22,6 +22,7 @@ lang: pt-BR
 | `pretreino_referencia.ipynb` | Treina o modelo de referência no Colab (executar uma vez, antes do evento) |
 | `mini_gpt.py` | Implementação de referência, importada pelas células de recuperação |
 | `checagens.py` | Verificações automáticas dos exercícios |
+| `tabuleiro.py` | Tabuleiro interativo (arrastar e soltar) para jogar contra o modelo no Colab |
 | `slides/attention_workshop.pptx` | Apresentação (30 slides, com notas do apresentador em todos) |
 | `docs/GUIA_DE_ESTUDOS.md` | Guia de estudos para a preparação do ministrante |
 | `data/xadrez.txt.gz` | 60 mil partidas do Lichess (2013), já filtradas e validadas |
@@ -128,6 +129,7 @@ Se o treino for interrompido, o último checkpoint salvo já é utilizável. Se 
 | Colab sem GPU disponível para parte da turma | Partes 1 e 2 funcionam em CPU. Na Parte 3, a pessoa interrompe o treino e usa o modelo de referência (seção 3.4), ou trabalha em dupla |
 | Internet lenta no laboratório | Distribuir o repositório em pen drive como plano B; o notebook funciona após *Arquivos > Upload* do zip e descompactação |
 | Colab fora do ar | Projetar o gabarito já executado (salvo no ensaio) e conduzir a Parte 3 como demonstração |
+| Tabuleiro interativo não responde (falha na comunicação com o Colab) | Em uma nova célula: `from tabuleiro import jogar_texto; jogar_texto(ref, tok_ref, device=device)`, versão com lances digitados |
 | Modelo de referência ausente | O notebook usa automaticamente o modelo treinado pela turma; a comparação da seção 3.4 fica prejudicada, mas nada quebra |
 | Atraso acumulado | Cortar conforme a seção 3 (slides 18 e 15, depois a seção 3.6) |
 | Turma muito heterogênea | Reforçar o uso das células de recuperação; os monitores priorizam quem está parado na Parte 2 |

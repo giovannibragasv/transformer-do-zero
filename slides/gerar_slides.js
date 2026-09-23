@@ -761,7 +761,7 @@ Tempo: 20 minutos (01:30 a 01:50). O treino da seção 3.2 já deve ter terminad
 
 Roteiro sugerido: gerar três partidas e observar em que lance cada uma se torna ilegal (3.3); variar a temperatura; medir a taxa de legalidade do próprio modelo e comparar com a do modelo de referência (3.4); jogar contra o modelo (3.5).
 
-Para jogar, a turma digita lances em notação algébrica. Quem não conhece a notação pode usar a tabela do slide anterior ou jogar aberturas conhecidas (1.e4, 2.Nf3, 3.Bc4). A seção 3.6 é um complemento para quem terminar antes.
+O tabuleiro da seção 3.5 é interativo: basta arrastar as peças (ou clicar na peça e depois na casa), e os lances legais ficam marcados. Quem preferir pode digitar em notação algébrica. Os lances do modelo aparecem em vermelho no histórico, e o painel mostra quantos deles foram legais na primeira tentativa. Vale sugerir que a turma jogue também contra o próprio modelo (trocando ref por modelo na célula) para comparar. A seção 3.6 é um complemento para quem terminar antes.
 
 Se o modelo de referência não estiver disponível, a seção 3.4 usa automaticamente o modelo treinado pela turma.`);
   t(s, "20 min", MX, 1.7, 3.0, 1.0, { fontFace: F.title, fontSize: 54, bold: true, color: C.blue });
@@ -779,7 +779,7 @@ Se o modelo de referência não estiver disponível, a seção 3.4 usa automatic
     t(s, b, 6.1, y, 6.5, 0.5, { fontSize: 18, bold: i === 3 });
   });
   box(s, MX, 5.95, W - 2 * MX, 0.75, undefined, { fill: C.soft, lineColor: C.soft });
-  t(s, "Lances em notação algébrica: e4, Nf3, exd5, O-O, Qxf7#. Digite “sair” para encerrar.", MX + 0.3, 5.95, W - 2 * MX - 0.6, 0.75, { fontSize: 16, valign: "middle" });
+  t(s, "Arraste as peças ou clique na peça e depois na casa. Também é possível digitar o lance (e4, Nf3, O-O).", MX + 0.3, 5.95, W - 2 * MX - 0.6, 0.75, { fontSize: 16, valign: "middle" });
 }
 
 // 28. Daqui até um LLM
