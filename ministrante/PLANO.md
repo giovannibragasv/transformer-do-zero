@@ -23,8 +23,13 @@ lang: pt-BR
 | `mini_gpt.py` | Implementação de referência, importada pelas células de recuperação |
 | `checagens.py` | Verificações automáticas dos exercícios |
 | `tabuleiro.py` | Tabuleiro interativo (arrastar e soltar) para jogar contra o modelo no Colab |
-| `slides/attention_workshop.pptx` | Apresentação (30 slides, com notas do apresentador em todos) |
-| `docs/GUIA_DE_ESTUDOS.md` | Guia de estudos para a preparação do ministrante |
+| `slides/attention_workshop.pptx` | Apresentação pública (30 slides, sem notas), no repositório |
+| `docs/cola_xadrez.pdf` | Referência de xadrez de uma página para a turma |
+| `ministrante/attention_workshop_com_notas.pptx` | A mesma apresentação, com as notas do apresentador em todos os slides |
+| `ministrante/cola_xadrez_ministrante.pdf` | Cola de xadrez com a frase de abertura e respostas para perguntas prováveis |
+| `ministrante/GUIA_DE_ESTUDOS.md` | Guia de estudos para a preparação do ministrante |
+
+A pasta `ministrante/` fica apenas no seu computador (está no `.gitignore`): nada dela vai para o GitHub.
 | `data/xadrez.txt.gz` | 60 mil partidas do Lichess (2013), já filtradas e validadas |
 
 # 2. Preparação
@@ -38,7 +43,10 @@ O workshop acontece em 14 de outubro de 2026 (D). As datas entre parênteses sã
 
    ```
    .venv/bin/python scripts/gerar_notebooks.py
-   cd slides && npm install && node gerar_slides.js attention_workshop.pptx
+   cd slides && npm install
+   node gerar_slides.js attention_workshop.pptx --sem-notas                 # versão pública
+   node gerar_slides.js ../ministrante/attention_workshop_com_notas.pptx     # versão com notas
+   cd .. && .venv/bin/python scripts/gerar_cola.py                           # as duas colas (.tex)
    ```
 
 3. Fazer o commit de tudo, exceto `data_raw/`, `data/xadrez.txt` e `.venv/` (já listados no `.gitignore`).
@@ -58,8 +66,8 @@ Se o treino for interrompido, o último checkpoint salvo já é utilizável. Se 
 
 1. Com uma conta Google diferente da sua, sem nada salvo no Drive, executar o `workshop_aluno.ipynb` do início ao fim como se fosse um participante. Resolver os exercícios sem consultar o gabarito e cronometrar cada parte.
 2. Executar o `workshop_gabarito.ipynb` inteiro e salvar a versão executada (com as saídas). Ela serve para demonstração caso o Colab fique instável no dia.
-3. Ensaiar a exposição com os slides em voz alta. As notas do apresentador trazem o conteúdo de cada fala; o tempo de cada bloco teórico é de 10 minutos.
-4. Fazer o estudo descrito no guia (`GUIA_DE_ESTUDOS.md`), em especial a seção de perguntas difíceis.
+3. Ensaiar a exposição com `ministrante/attention_workshop_com_notas.pptx` em voz alta. As notas do apresentador trazem o conteúdo de cada fala; o tempo de cada bloco teórico é de 10 minutos.
+4. Fazer o estudo descrito no guia (`ministrante/GUIA_DE_ESTUDOS.md`), em especial a seção de perguntas difíceis.
 
 ## D − 3 (11/10): logística
 
@@ -150,10 +158,11 @@ transformer-do-zero/
 │   ├── pretreinar.py           treino do modelo de referência
 │   └── gerar_notebooks.py      fonte única dos notebooks
 ├── slides/
-│   ├── attention_workshop.pptx
+│   ├── attention_workshop.pptx versão pública, sem notas
 │   ├── gerar_slides.js         fonte da apresentação (pptxgenjs)
 │   └── assets/                 equações e gráficos
-└── docs/                       plano e guia de estudos (.md e .tex)
+├── docs/                       cola de xadrez para a turma
+└── ministrante/                só no seu computador: slides com notas, plano, guia, cola do ministrante
 ```
 
 Os notebooks e os slides são gerados a partir de scripts. Qualquer alteração deve ser feita na fonte (`scripts/gerar_notebooks.py` ou `slides/gerar_slides.js`) e o artefato regenerado. Editar o `.ipynb` diretamente funciona, mas a alteração se perde na próxima geração.

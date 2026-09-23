@@ -3,6 +3,8 @@ const path = require("path");
 const pptxgen = require("pptxgenjs");
 
 const OUT = process.argv[2] || "attention_workshop.pptx";
+// --sem-notas gera a versão pública, sem as notas do apresentador
+const SEM_NOTAS = process.argv.includes("--sem-notas");
 const REPO_USER = "giovannibragasv";
 const COLAB_URL = `colab.research.google.com/github/${REPO_USER}/transformer-do-zero/blob/main/workshop_aluno.ipynb`;
 const A = (f) => path.join(__dirname, "assets", f);
@@ -103,7 +105,7 @@ function base(section, title, notes) {
   if (section) t(s, section.toUpperCase(), MX, 0.35, 8, 0.3, { fontSize: 11, color: C.accent, charSpacing: 2, bold: true });
   if (title) t(s, title, MX, 0.62, W - 2 * MX, 0.8, { fontFace: F.title, fontSize: 32, bold: true });
   t(s, String(n), W - MX - 0.6, H - 0.45, 0.6, 0.25, { fontSize: 10, color: C.faint, align: "right" });
-  if (notes) s.addNotes(notes.trim());
+  if (notes && !SEM_NOTAS) s.addNotes(notes.trim());
   return s;
 }
 function chessboard(s, x, y, cell, hi = {}) {

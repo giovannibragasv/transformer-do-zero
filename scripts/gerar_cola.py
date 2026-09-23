@@ -1,4 +1,8 @@
-"""Gera docs/cola_xadrez.tex: uma página de consulta sobre xadrez para o ministrante.
+"""Gera a cola de xadrez de uma página, em duas versões.
+
+- docs/cola_xadrez.tex: versão pública, para a turma.
+- ministrante/cola_xadrez_ministrante.tex: versão do ministrante, com a frase
+  de abertura e respostas para perguntas prováveis (fora do repositório).
 
 Os tabuleiros são desenhados em TikZ a partir de posições calculadas com
 python-chess, e as peças são os mesmos SVGs usados no tabuleiro interativo do
@@ -7,6 +11,7 @@ notebook (convertidos para PDF com rsvg-convert).
 Uso:
     python scripts/gerar_cola.py
     cd docs && xelatex cola_xadrez.tex
+    cd ministrante && xelatex cola_xadrez_ministrante.tex
 """
 
 import subprocess
@@ -18,6 +23,7 @@ import chess.svg
 RAIZ = Path(__file__).resolve().parent.parent
 DOCS = RAIZ / "docs"
 PECAS = DOCS / "pecas"
+MINISTRANTE = RAIZ / "ministrante"
 
 
 # ---------------------------------------------------------------------------
@@ -134,7 +140,44 @@ def celula_peca(simbolo, origem, extras, nome, letra, texto):
             r"{\large\textbf{%s}}\hfill\letra{%s}\par\vspace{2pt}{\small %s}\end{minipage}" % (nome, letra, texto))
 
 
-def gerar_tex():
+PUBLICA = {
+    "subtitulo": r"Referência rápida para a Parte 3 do workshop \emph{Attention is All You Need}",
+    "abertura": "",
+    "demos": "Duas partidas para experimentar",
+    "espanhola": r"O modelo viu essa abertura milhares de vezes no treino. Com temperatura 0,3 ainda há sorteio, então ele pode sair da linha.",
+    "final": r"""\secao{Para observar}
+\begin{minipage}[t]{.485\linewidth}
+\raggedright\textbf{Em que lance ele erra primeiro?}\enspace Aberturas aparecem milhares de vezes nos dados; posições do meio-jogo são quase sempre inéditas. Veja onde a qualidade cai.\par\vspace{5pt}
+\textbf{Temperatura.}\enspace Com valores baixos o modelo repete as linhas mais comuns; com valores altos, inventa mais e erra mais.
+\end{minipage}\hfill
+\begin{minipage}[t]{.485\linewidth}
+\raggedright\textbf{Seu modelo contra o de referência.}\enspace O de referência tem seis vezes mais parâmetros e treinou dez vezes mais. Compare as taxas de lances legais na seção 3.4.\par\vspace{5pt}
+\textbf{Ele nunca viu um tabuleiro.}\enspace Tudo o que ele sabe veio de ler partidas como texto, um caractere por vez.
+\end{minipage}""",
+    "grafico": "",
+}
+
+MINISTRO = {
+    "subtitulo": r"Uma página para conduzir a Parte 3 do workshop \emph{Attention is All You Need}",
+    "abertura": r"""\begin{tcolorbox}[colback=suave,colframe=suave,boxrule=0pt,arc=3pt,left=10pt,right=10pt,top=4pt,bottom=4pt]
+{\itshape ``Eu nunca joguei xadrez. O modelo também não: ele só leu 60 mil partidas.''}\hfill{\small\color{mudo} uma boa frase de abertura}
+\end{tcolorbox}""",
+    "demos": "Duas demonstrações prontas",
+    "espanhola": r"Mostra que o modelo reproduz a teoria que viu milhares de vezes. Se ele sair da linha, também serve: com temperatura 0,3 ainda há sorteio.",
+    "final": r"""\secao{Se alguém perguntar}
+\begin{minipage}[t]{.485\linewidth}
+\raggedright\textbf{``Ele joga bem?''}\enspace Não medimos rating, só se os lances são legais: cerca de 85\% nos primeiros 20 lances, contra um adversário que joga ao acaso.\par\vspace{5pt}
+\textbf{``Ele entende xadrez?''}\enspace Ele nunca vê o tabuleiro, mas para acertar lances precisa representar as peças por dentro. Karvonen (2024) consegue ler o tabuleiro nas ativações. É o slide 25.
+\end{minipage}\hfill
+\begin{minipage}[t]{.485\linewidth}
+\raggedright\textbf{``E o Stockfish, o AlphaZero?''}\enspace Eles recebem o tabuleiro e calculam variantes antes de jogar. O nosso não calcula nada: prevê o próximo caractere, imitando partidas humanas.\par\vspace{5pt}
+\textbf{``Você joga?''}\enspace Não. E essa é a graça: nem eu nem o modelo aprendemos com as regras.
+\end{minipage}""",
+    "grafico": r"\graphicspath{{../docs/}}",
+}
+
+
+def gerar_tex(v):
     celulas = [celula_peca(*info) for info in PECAS_INFO]
     grade = (celulas[0] + r"\hfill" + celulas[1] + r"\hfill" + celulas[2] + r"\par\vspace{6pt}"
              + celulas[3] + r"\hfill" + celulas[4] + r"\hfill" + celulas[5])
@@ -173,15 +216,14 @@ def gerar_tex():
 \newcommand{\secao}[1]{\vspace{7pt}{\Large\bfseries #1}\par\vspace{4pt}}
 \newcommand{\letra}[1]{\tikz[baseline=(x.base)]\node[fill=claro,rounded corners=2pt,inner xsep=4pt,inner ysep=2pt,font=\ttfamily\bfseries\color{azul}](x){#1};}
 \newcommand{\lance}[1]{\texttt{#1}}
+""" + v["grafico"] + r"""
 \begin{document}
 
 \rotulo{CESUPA Tech Summit 2026 \,·\, 14 de outubro}\par\vspace{4pt}
 {\fontsize{26}{29}\selectfont\bfseries Xadrez para quem nunca jogou}\par\vspace{2pt}
-{\large\itshape\color{mudo} Uma página para conduzir a Parte 3 do workshop \emph{Attention is All You Need}}\par
+{\large\itshape\color{mudo} """ + v["subtitulo"] + r"""}\par
 \vspace{6pt}
-\begin{tcolorbox}[colback=suave,colframe=suave,boxrule=0pt,arc=3pt,left=10pt,right=10pt,top=4pt,bottom=4pt]
-{\itshape ``Eu nunca joguei xadrez. O modelo também não: ele só leu 60 mil partidas.''}\hfill{\small\color{mudo} uma boa frase de abertura}
-\end{tcolorbox}
+""" + v["abertura"] + r"""
 
 \secao{As peças}
 {\small\color{mudo} Os pontos mostram para onde a peça pode ir; os anéis, o que ela pode capturar. É o mesmo desenho do tabuleiro do notebook.}\par\vspace{8pt}
@@ -202,7 +244,7 @@ Cada lance é a letra da peça seguida da casa de destino. No tabuleiro ao lado,
 \end{tabularx}
 \end{minipage}
 
-\secao{Duas demonstrações prontas}
+\secao{""" + v["demos"] + r"""}
 \begin{minipage}[t]{.485\linewidth}\vspace{0pt}
 \begin{minipage}[t]{3.85cm}\vspace{0pt}
 """ + tab_espanhola + r"""
@@ -213,7 +255,7 @@ Cada lance é a letra da peça seguida da casa de destino. No tabuleiro ao lado,
 {\small\color{mudo}Você joga}\par \lance{e4 \ Nf3 \ Bb5 \ Ba4}\par\vspace{4pt}
 {\small\color{mudo}O modelo deve responder}\par \lance{e5 \ Nc6 \ a6 \ Nf6}\par
 \end{minipage}\par\vspace{6pt}
-{\small\raggedright Mostra que o modelo reproduz a teoria que viu milhares de vezes. Se ele sair da linha, também serve: com temperatura 0,3 ainda há sorteio.}
+{\small\raggedright """ + v["espanhola"] + r"""}
 \end{minipage}\hfill
 \begin{minipage}[t]{.485\linewidth}\vspace{0pt}
 \begin{minipage}[t]{3.85cm}\vspace{0pt}
@@ -228,15 +270,7 @@ Cada lance é a letra da peça seguida da casa de destino. No tabuleiro ao lado,
 {\small\raggedright Dama (seta vermelha) e bispo (tracejada) atacam f7. Se o modelo defender com \lance{g6}, \lance{Qe7} ou \lance{Qf6}, aprendeu a defesa só lendo partidas.}
 \end{minipage}
 
-\secao{Se alguém perguntar}
-\begin{minipage}[t]{.485\linewidth}
-\raggedright\textbf{``Ele joga bem?''}\enspace Não medimos rating, só se os lances são legais: cerca de 85\% nos primeiros 20 lances, contra um adversário que joga ao acaso.\par\vspace{5pt}
-\textbf{``Ele entende xadrez?''}\enspace Ele nunca vê o tabuleiro, mas para acertar lances precisa representar as peças por dentro. Karvonen (2024) consegue ler o tabuleiro nas ativações. É o slide 25.
-\end{minipage}\hfill
-\begin{minipage}[t]{.485\linewidth}
-\raggedright\textbf{``E o Stockfish, o AlphaZero?''}\enspace Eles recebem o tabuleiro e calculam variantes antes de jogar. O nosso não calcula nada: prevê o próximo caractere, imitando partidas humanas.\par\vspace{5pt}
-\textbf{``Você joga?''}\enspace Não. E essa é a graça: nem eu nem o modelo aprendemos com as regras.
-\end{minipage}
+""" + v["final"] + r"""
 
 \vspace{8pt}
 \begin{tcolorbox}[colback=claro,colframe=claro,boxrule=0pt,arc=3pt,left=10pt,right=10pt,top=5pt,bottom=5pt]
@@ -247,10 +281,12 @@ O peão que chega ao outro lado vira dama automaticamente.
 
 \end{document}
 """
-    (DOCS / "cola_xadrez.tex").write_text(tex)
-    print("gerado: docs/cola_xadrez.tex")
+    return tex
 
 
 if __name__ == "__main__":
     gerar_pecas()
-    gerar_tex()
+    (DOCS / "cola_xadrez.tex").write_text(gerar_tex(PUBLICA))
+    MINISTRANTE.mkdir(exist_ok=True)
+    (MINISTRANTE / "cola_xadrez_ministrante.tex").write_text(gerar_tex(MINISTRO))
+    print("gerado: docs/cola_xadrez.tex e ministrante/cola_xadrez_ministrante.tex")

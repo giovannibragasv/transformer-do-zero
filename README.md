@@ -25,7 +25,7 @@ Em seguida, salve uma cópia no Drive (*Arquivo > Salvar uma cópia no Drive*) e
 | `data/xadrez.txt.gz` | Partidas do Lichess (2013), filtradas e validadas com python-chess |
 | `scripts/` | Preparação dos dados, pré-treino e geração dos notebooks |
 | `slides/` | Apresentação (`.pptx`) e seu script gerador |
-| `docs/` | Plano do workshop e guia de estudos (`.md`, `.tex` e `.pdf`) |
+| `docs/cola_xadrez.pdf` | Referência de xadrez de uma página para a Parte 3 |
 
 ## Reprodução
 

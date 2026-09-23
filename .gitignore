@@ -11,3 +11,4 @@ docs/*.xdv
 docs/*.toc
 .DS_Store
 node_modules/
+ministrante/

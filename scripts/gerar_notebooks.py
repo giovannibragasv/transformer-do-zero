@@ -891,11 +891,10 @@ def pretreino():
     nb.cells = [
         nbf.v4.new_markdown_cell(
             "# Pré-treino do modelo de referência\n\n"
-            "Este notebook deve ser executado uma única vez, antes do workshop, em um ambiente com GPU "
-            "(a T4 gratuita é suficiente; L4 ou A100 reduzem o tempo). O treino dura cerca de 60 minutos.\n\n"
-            "Ao final, baixe `xadrez_referencia.pt` e adicione o arquivo à pasta `modelos/` do repositório. "
-            "O script salva um checkpoint a cada 10 minutos; se a sessão do Colab for interrompida, "
-            "o arquivo parcial já pode ser usado."
+            "Treina o modelo de referência usado na seção 3.4 do workshop (6 blocos, 8 cabeças, "
+            "cerca de 4,8 milhões de parâmetros). Não é necessário para acompanhar o workshop: "
+            "o modelo já treinado está em `modelos/xadrez_referencia.pt`.\n\n"
+            "Com uma GPU T4, o treino dura cerca de 60 minutos. O script salva um checkpoint a cada 10 minutos."
         ),
         nbf.v4.new_code_cell(
             "import os, gzip, shutil\n"
