@@ -167,7 +167,7 @@ MINISTRO = {
     "final": r"""\secao{Se alguém perguntar}
 \begin{minipage}[t]{.485\linewidth}
 \raggedright\textbf{``Ele joga bem?''}\enspace Não medimos rating, só se os lances são legais: cerca de 85\% nos primeiros 20 lances, contra um adversário que joga ao acaso.\par\vspace{5pt}
-\textbf{``Ele entende xadrez?''}\enspace Ele nunca vê o tabuleiro, mas para acertar lances precisa representar as peças por dentro. Karvonen (2024) consegue ler o tabuleiro nas ativações. É o slide 25.
+\textbf{``Ele entende xadrez?''}\enspace Ele nunca vê o tabuleiro, mas para acertar lances precisa representar as peças por dentro. Karvonen (2024) consegue ler o tabuleiro nas ativações. É o slide 14.
 \end{minipage}\hfill
 \begin{minipage}[t]{.485\linewidth}
 \raggedright\textbf{``E o Stockfish, o AlphaZero?''}\enspace Eles recebem o tabuleiro e calculam variantes antes de jogar. O nosso não calcula nada: prevê o próximo caractere, imitando partidas humanas.\par\vspace{5pt}
