@@ -43,8 +43,58 @@ def _protege(checa):
 
 
 # ---------------------------------------------------------------------------
+# Lacunas: o aluno troca ___ pela resposta
+# ---------------------------------------------------------------------------
+
+class LacunaVazia(Exception):
+    pass
+
+
+class _Lacuna:
+    """Valor de ___ nos exercícios. Qualquer uso levanta um erro legível."""
+
+    __array_ufunc__ = None   # faz o NumPy delegar os operadores para esta classe
+
+    def _erro(self, *args, **kwargs):
+        raise LacunaVazia("ainda há ___ no código. Troque cada ___ pela resposta indicada no comentário.")
+
+    __call__ = __add__ = __radd__ = __matmul__ = __rmatmul__ = _erro
+    __truediv__ = __rtruediv__ = __mul__ = __rmul__ = __sub__ = __rsub__ = _erro
+    __array__ = _erro
+
+    def __repr__(self):
+        return "___"
+
+
+LACUNA = _Lacuna()
+
+
+# ---------------------------------------------------------------------------
 # Parte 1 (NumPy)
 # ---------------------------------------------------------------------------
+
+def checa_passo1(scores, Q, K):
+    esperado = Q @ K.T / math.sqrt(K.shape[-1])
+    if np.shape(scores) != esperado.shape:
+        _falhou("a tabela deveria ter uma linha e uma coluna para cada palavra. Use K.T (K transposta).")
+    if np.allclose(scores, Q @ K.T):
+        _falhou("falta dividir por np.sqrt(d_k).")
+    if not np.allclose(scores, esperado):
+        _falhou("o resultado esperado é Q @ K.T / np.sqrt(d_k).")
+    _ok("passo 1. Cada número compara a pergunta de uma palavra com a etiqueta de outra.")
+
+
+def checa_passo2(pesos, scores):
+    if not np.allclose(pesos, _softmax_ref(scores)):
+        _falhou("o resultado esperado é softmax(scores).")
+    _ok("passo 2. Cada linha agora soma 1 (100%).")
+
+
+def checa_passo3(saida, pesos, V):
+    if not np.allclose(saida, pesos @ V):
+        _falhou("o resultado esperado é pesos @ V.")
+    _ok("passo 3. Cada palavra recebeu uma mistura dos conteúdos das outras.")
+
 
 def _softmax_ref(x):
     x = x - x.max(axis=-1, keepdims=True)

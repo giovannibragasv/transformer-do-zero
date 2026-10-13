@@ -38,24 +38,38 @@ tabuleiro: ele só lê partidas escritas como texto e aprende a prever o próxim
 
 | Parte | O que acontece |
 |---|---|
-| 1 | A atenção, a ideia central do Transformer, escrita em NumPy |
-| 2 | O Transformer completo em PyTorch, testado numa tarefa de ordenar números |
+| 1 | A atenção, a ideia central do Transformer, feita passo a passo |
+| 2 | O Transformer completo, testado numa tarefa de ordenar números |
 | Intervalo | O modelo de xadrez treina durante a pausa |
 | 3 | Gerar partidas e jogar contra o modelo |
 
-Convenções usadas nas células:
+## Como usar este notebook
 
-- `[Executar]`: a célula está pronta; basta executá-la (Shift + Enter).
-- `[Exercício N]`: há um trecho curto para completar. A própria célula confere a resposta.
-- `[Recuperação]`: carrega a solução pronta, para quem quiser seguir adiante sem resolver o exercício.
+- Para executar uma célula, clique nela e aperte **Shift + Enter**.
+- `[Executar]`: a célula está pronta; basta executá-la.
+- `[Exercício N]`: há uma lacuna `___` para trocar pela resposta. **A resposta está indicada no comentário da
+  própria célula.** Depois de executar, a célula diz se está correto.
+- `[Recuperação]`: se algo der errado, carrega a solução pronta para você seguir adiante.
+- Algumas células aparecem só com um título, sem código. O código está escondido para não poluir a tela; se
+  quiser ver, clique duas vezes no título.
 
 Antes de começar, selecione uma GPU em *Ambiente de execução > Alterar o tipo de ambiente de execução > T4 GPU*.
+
+## Mini glossário
+
+| Palavra | O que significa aqui |
+|---|---|
+| vetor | uma lista de números. Cada palavra (ou caractere) vira um vetor |
+| matriz | uma tabela de números. Várias palavras juntas formam uma matriz, uma linha por palavra |
+| `@` | o símbolo de multiplicação de matrizes no Python. Compara linhas com linhas |
+| treinar | ajustar os números do modelo até ele acertar as previsões |
+| parâmetros | os números que o treino ajusta |
 """)
 
 md("## 0. Preparação")
 
 ambos(rf"""
-# [Executar] Baixa o código de apoio e as partidas de xadrez.
+# @title [Executar] Baixa o código de apoio e as partidas de xadrez {{ display-mode: "form" }}
 import os, gzip, shutil
 if not os.path.exists("mini_gpt.py"):
     !git clone -q {REPO_GIT} repo
@@ -64,24 +78,33 @@ if not os.path.exists("data/xadrez.txt"):
     with gzip.open("data/xadrez.txt.gz", "rb") as f, open("data/xadrez.txt", "wb") as g:
         shutil.copyfileobj(f, g)
 %pip install -q chess
+print("Pronto.")
 """)
 
 ambos(r"""
-# [Executar] Bibliotecas e funções auxiliares.
+# @title [Executar] Bibliotecas e funções auxiliares { display-mode: "form" }
 import math, time, random
 import numpy as np
+import pandas as pd
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import matplotlib.pyplot as plt
 from dataclasses import dataclass
+from IPython.display import display
 import checagens
 
+___ = checagens.LACUNA                               # a lacuna dos exercícios
 RAPIDO = os.environ.get("WORKSHOP_RAPIDO") == "1"   # usado apenas em testes automatizados
 device = "cuda" if torch.cuda.is_available() else "cpu"
 print("Dispositivo:", device)
 if device == "cpu":
     print("Atenção: sem GPU, o treino da Parte 3 será bem mais lento.")
+
+def tabela(nome, M, linhas, colunas=None):
+    # Mostra uma matriz como uma tabela com nomes nas linhas e nas colunas.
+    print(nome)
+    display(pd.DataFrame(np.round(np.asarray(M, dtype=float), 2), index=linhas, columns=colunas))
 
 def mostra_atencao(pesos, rotulos_x, rotulos_y=None, titulo="", ax=None):
     # Cada linha é uma palavra perguntando; cada coluna, uma palavra sendo consultada.
@@ -97,103 +120,162 @@ def mostra_atencao(pesos, rotulos_x, rotulos_y=None, titulo="", ax=None):
 md(r"""
 # Parte 1. A atenção
 
-Para entender uma palavra, olhamos para as outras. Em "o rei protege a rainha", entender "protege" depende de
-saber quem protege e quem é protegido. A atenção faz exatamente isso: cada palavra decide **quanto olhar para
-cada uma das outras** e mistura o que encontra.
+Para entender uma palavra, olhamos para as outras. Na frase "o gato subiu no telhado porque **ele** estava com
+medo", só dá para saber quem é "ele" olhando para "gato". A atenção faz exatamente isso: cada palavra decide
+**quanto olhar para cada uma das outras** e junta o que encontra.
 
-Cada palavra produz três vetores:
+Funciona como uma busca no YouTube. Cada palavra produz três vetores:
 
-- uma **query**: o que ela está procurando;
-- uma **key**: o que ela oferece para ser encontrada;
-- um **value**: o conteúdo que ela entrega.
+| Nome | Na busca do YouTube | Na frase |
+|---|---|---|
+| **query** (Q) | o que você digita na busca | o que a palavra está procurando |
+| **key** (K) | o título de cada vídeo | o que cada palavra oferece para ser encontrada |
+| **value** (V) | o vídeo em si | o conteúdo que cada palavra entrega |
 
-O cálculo tem três passos:
+A atenção tem três passos, e você vai fazer cada um numa linha de código:
 
-1. comparar a query com cada key (produto escalar): quanto maior, mais parecidas;
-2. transformar essas comparações em pesos que somam 1 (softmax);
-3. fazer a média dos values usando esses pesos.
+1. **Comparar** a query com cada key. Quanto maior o número, mais elas combinam.
+2. **Pesar**: transformar as comparações em porcentagens que somam 100%.
+3. **Misturar** os values, usando essas porcentagens.
 
-Em uma linha, como está no artigo:
+## 1.1 O exemplo
 
-$$\text{Attention}(Q, K, V) = \text{softmax}\!\left(\frac{QK^\top}{\sqrt{d_k}}\right) V$$
+Três palavras, cada uma com uma query, uma key e um value de dois números. Num modelo de verdade, esses números
+são aprendidos no treino; aqui, escolhemos à mão.
+""")
 
-A divisão por $\sqrt{d_k}$ só evita que os números fiquem grandes demais; não muda a ideia.
+ambos(r"""
+# [Executar]
+palavras = ["rei", "protege", "rainha"]
 
-## 1.1 Softmax
+Q = np.array([[1., 0.], [0., 1.], [1., 1.]])     # o que cada palavra procura
+K = np.array([[1., 0.], [0., 1.], [1., 1.]])     # o que cada palavra oferece
+V = np.array([[10., 0.], [0., 10.], [5., 5.]])   # o conteúdo de cada palavra
+d_k = K.shape[-1]                                # tamanho de cada key (aqui, 2)
 
-A softmax transforma uma lista de números quaisquer em pesos positivos que somam 1. Números maiores recebem
-pesos maiores. Ela já está pronta:
+tabela("Q (queries)", Q, palavras)
+tabela("K (keys)", K, palavras)
+tabela("V (values)", V, palavras)
+""")
+
+md(r"""
+## 1.2 Passo 1: comparar
+
+Comparamos a query de cada palavra com a key de todas as outras. Em Python, isso é `Q @ K.T`:
+
+- `K.T` é a matriz K "deitada" (transposta), para que as linhas de Q possam ser comparadas com as linhas de K;
+- `@` multiplica as matrizes, o que faz todas as comparações de uma vez;
+- dividimos por `np.sqrt(d_k)` só para os números não ficarem grandes demais.
+
+O resultado é uma tabela: a linha diz quem pergunta, a coluna diz quem é consultado.
+""")
+
+exercicio(r"""
+# [Exercício 1, passo 1] Troque ___ por K.T
+scores = Q @ ___ / np.sqrt(d_k)
+
+tabela("scores (comparações)", scores, palavras, palavras)
+checagens.checa_passo1(scores, Q, K)
+""", r"""
+# [Exercício 1, passo 1] Troque ___ por K.T
+scores = Q @ K.T / np.sqrt(d_k)
+
+tabela("scores (comparações)", scores, palavras, palavras)
+checagens.checa_passo1(scores, Q, K)
+""")
+
+md(r"""
+## 1.3 Passo 2: pesar
+
+Os scores podem ser quaisquer números. A **softmax** transforma cada linha em porcentagens que somam 100%: o
+maior número leva a maior fatia. Ela já está pronta:
 """)
 
 ambos(r"""
 # [Executar]
 def softmax(x):
-    x = x - x.max(axis=-1, keepdims=True)      # evita overflow; o resultado não muda
+    x = x - x.max(axis=-1, keepdims=True)      # evita números grandes demais; o resultado não muda
     e = np.exp(x)
     return e / e.sum(axis=-1, keepdims=True)
 
-print(softmax(np.array([1.0, 2.0, 3.0])))      # o maior número leva o maior peso
-""")
-
-md(r"""
-## 1.2 A atenção
-
-Complete os três passos. `Q`, `K` e `V` são matrizes com uma linha por palavra.
-
-| Passo | Código |
-|---|---|
-| comparar cada query com cada key | `Q @ K.T`, dividido por `np.sqrt(d_k)` |
-| transformar em pesos | `softmax(scores)` |
-| média ponderada dos values | `pesos @ V` |
-
-O trecho da máscara já está pronto; ele é o assunto da seção 1.3.
+print(softmax(np.array([1.0, 2.0, 3.0])))      # o maior número leva o maior peso, e tudo soma 1
 """)
 
 exercicio(r"""
-def atencao(Q, K, V, mascara=None):
-    d_k = K.shape[-1]
-    # [Exercício 1a] compare cada query com cada key
-    scores = ...
+# [Exercício 1, passo 2] Troque ___ por softmax
+pesos = ___(scores)
 
-    if mascara is not None:                                   # seção 1.3
-        scores = np.where(mascara == 0, -np.inf, scores)
-
-    # [Exercício 1b] transforme os scores em pesos e faça a média dos values
-    pesos = ...
-    saida = ...
-    return saida, pesos
-
-checagens.checa_atencao(atencao)
+tabela("pesos (cada linha soma 1)", pesos, palavras, palavras)
+checagens.checa_passo2(pesos, scores)
 """, r"""
-def atencao(Q, K, V, mascara=None):
-    d_k = K.shape[-1]
-    scores = Q @ K.T / np.sqrt(d_k)
+# [Exercício 1, passo 2] Troque ___ por softmax
+pesos = softmax(scores)
 
-    if mascara is not None:
-        scores = np.where(mascara == 0, -np.inf, scores)
+tabela("pesos (cada linha soma 1)", pesos, palavras, palavras)
+checagens.checa_passo2(pesos, scores)
+""")
 
-    pesos = softmax(scores)
-    saida = pesos @ V
-    return saida, pesos
+md(r"""
+Leia a tabela por linhas. A linha "rei" diz quanto o "rei" presta atenção em cada palavra, inclusive nele mesmo.
 
-checagens.checa_atencao(atencao)
+## 1.4 Passo 3: misturar
+
+Cada palavra recebe uma mistura dos values, usando os seus pesos. Se "rei" dá 50% de atenção a ele mesmo e 50% a
+"rainha", ele recebe metade do value de cada um. Em Python, `pesos @ V` faz isso para todas as palavras.
+""")
+
+exercicio(r"""
+# [Exercício 1, passo 3] Troque ___ por V
+saida = pesos @ ___
+
+tabela("saída (o que cada palavra recebeu)", saida, palavras)
+checagens.checa_passo3(saida, pesos, V)
+""", r"""
+# [Exercício 1, passo 3] Troque ___ por V
+saida = pesos @ V
+
+tabela("saída (o que cada palavra recebeu)", saida, palavras)
+checagens.checa_passo3(saida, pesos, V)
 """)
 
 ambos(r"""
-# [Recuperação] Remova o # da linha abaixo e execute.
-# from checagens import _atencao_ref as atencao
+# [Recuperação] Se algum passo deu erro, remova o # da linha abaixo e execute.
+# scores = Q @ K.T / np.sqrt(d_k); pesos = softmax(scores); saida = pesos @ V
+""")
+
+md(r"""
+## 1.5 Os três passos numa função
+
+Pronto: você fez a atenção. A célula abaixo só junta as suas três linhas numa função, para usarmos depois. Compare
+com a fórmula do artigo de 2017, que diz exatamente a mesma coisa:
+
+$$\text{Attention}(Q, K, V) = \text{softmax}\!\left(\frac{QK^\top}{\sqrt{d_k}}\right) V$$
+""")
+
+ambos(r"""
+# [Executar]
+def atencao(Q, K, V, mascara=None):
+    d_k = K.shape[-1]
+    scores = Q @ K.T / np.sqrt(d_k)                           # passo 1: comparar
+    if mascara is not None:                                   # (seção 1.6)
+        scores = np.where(mascara == 0, -np.inf, scores)
+    pesos = softmax(scores)                                   # passo 2: pesar
+    saida = pesos @ V                                         # passo 3: misturar
+    return saida, pesos
+
+checagens.checa_atencao(atencao)
 """)
 
 md(r"""
 ### Experimente: atenção como um dicionário
 
 Num dicionário comum, você procura `"cavalo"` e recebe exatamente o valor do cavalo. Na atenção, a busca é
-"suave": a resposta é uma mistura dos valores, pesada pela semelhança entre o que você procura e cada chave.
-Abaixo, as chaves são peças de xadrez e os valores são quantos pontos cada peça vale.
+"suave": a resposta é uma mistura dos valores, pesada pela semelhança. Aqui, as keys são peças de xadrez e os
+values são quantos pontos cada peça vale. Mude as consultas e execute de novo.
 """)
 
 ambos(r"""
-# [Executar] Mude as consultas e veja como os pesos se distribuem.
+# [Executar]
 pecas = ["peão", "cavalo", "bispo", "torre", "dama"]
 K_dic = np.eye(5) * 3                                # uma key para cada peça
 V_dic = np.array([[1.], [3.], [3.], [5.], [9.]])     # quantos pontos cada peça vale
@@ -209,12 +291,12 @@ consulta("peão", "dama")
 """)
 
 md(r"""
-## 1.3 Máscara causal: ninguém olha para o futuro
+## 1.6 Máscara causal: ninguém olha para o futuro
 
 Um modelo que escreve texto gera uma palavra de cada vez. Quando ele está escrevendo a terceira palavra, a
 quarta ainda não existe. Por isso, cada palavra só pode olhar para ela mesma e para as anteriores.
 
-A máscara é uma tabela de 1s e 0s: 1 onde pode olhar, 0 onde não pode. Onde é 0, o peso vira zero.
+A máscara é uma tabela de 1s e 0s: 1 onde pode olhar, 0 onde não pode.
 
 ```
           o   rei  protege  a   rainha
@@ -224,19 +306,25 @@ protege   1    1      1     0     0
 a         1    1      1     1     0
 rainha    1    1      1     1     1
 ```
+
+Repare que é uma tabela cheia de 1s com a parte de cima da diagonal zerada. O NumPy tem uma função que faz
+exatamente isso: `np.tril` (de *triangle lower*, triângulo de baixo). Basta entregar a ela uma tabela de 1s,
+`np.ones((T, T))`.
 """)
 
 exercicio(r"""
 def mascara_causal(T):
-    # [Exercício 2] Uma matriz T x T com 1 na diagonal e abaixo dela, e 0 acima.
-    # Dica: np.tril(np.ones((T, T)))
-    raise NotImplementedError("Exercício 2")
+    # [Exercício 2] Troque ___ por np.ones((T, T))
+    return np.tril(___)
 
+print(mascara_causal(5))
 checagens.checa_mascara(mascara_causal, atencao)
 """, r"""
 def mascara_causal(T):
+    # [Exercício 2] Troque ___ por np.ones((T, T))
     return np.tril(np.ones((T, T)))
 
+print(mascara_causal(5))
 checagens.checa_mascara(mascara_causal, atencao)
 """)
 
@@ -251,10 +339,10 @@ tokens = ["o", "rei", "protege", "a", "rainha"]
 rng = np.random.default_rng(42)
 X = rng.normal(size=(5, 16))                         # um vetor para cada palavra
 W_Q, W_K, W_V = (rng.normal(size=(16, 8)) for _ in range(3))
-Q, K, V = X @ W_Q, X @ W_K, X @ W_V                  # queries, keys e values
+Q5, K5, V5 = X @ W_Q, X @ W_K, X @ W_V               # queries, keys e values
 
-_, p_livre  = atencao(Q, K, V)
-_, p_causal = atencao(Q, K, V, mascara=mascara_causal(5))
+_, p_livre  = atencao(Q5, K5, V5)
+_, p_causal = atencao(Q5, K5, V5, mascara=mascara_causal(5))
 
 fig, axs = plt.subplots(1, 2, figsize=(9, 4))
 mostra_atencao(p_livre, tokens, titulo="sem máscara", ax=axs[0])
@@ -263,36 +351,35 @@ plt.tight_layout(); plt.show()
 """)
 
 md(r"""
-Cada linha mostra para onde uma palavra olha. Por enquanto, os padrões são aleatórios, porque as matrizes
-$W_Q$, $W_K$ e $W_V$ foram sorteadas. **Treinar o modelo é ajustar essas matrizes** até que os pesos passem a
-fazer sentido. É isso que vamos ver na Parte 2.
+Cada linha mostra para onde uma palavra olha: quanto mais escuro, mais atenção. Com a máscara, a parte de cima
+fica branca. Por enquanto, os padrões são aleatórios, porque os números foram sorteados. **Treinar o modelo é
+ajustar esses números** até que a atenção passe a fazer sentido. É isso que vamos ver na Parte 2.
 """)
 
 # =============================================================================
 md(r"""
-# Parte 2. O Transformer em PyTorch
+# Parte 2. O Transformer
 
-O Transformer empilha **blocos**. Cada bloco tem duas etapas:
+O Transformer é uma pilha de **blocos** iguais. Cada bloco tem duas etapas:
 
-1. **atenção**: as palavras trocam informação entre si (o que você escreveu na Parte 1);
-2. **rede feed-forward**: cada palavra processa sozinha o que recebeu.
+1. **atenção**: as palavras trocam informação entre si (o que você fez na Parte 1);
+2. **feed-forward**: cada palavra "pensa sozinha" sobre o que recebeu.
 
-Para um modelo que gera texto, o caminho completo é:
+O caminho completo de um modelo que gera texto:
 
 ```
-caracteres -> vetores -> [ atenção -> feed-forward ] x N blocos -> probabilidade do próximo caractere
+caracteres -> vetores -> [ atenção -> feed-forward ] x N blocos -> chance de cada próximo caractere
 ```
 
 ## 2.1 As peças prontas
 
-A célula abaixo traz a sua função `atencao` reescrita em PyTorch (`Head`), várias atenções em paralelo
-(`MultiHeadAttention`) e a rede feed-forward. A diferença para o NumPy é só de sintaxe: o PyTorch guarda as
-matrizes $W_Q$, $W_K$, $W_V$ e sabe ajustá-las durante o treino. Não é preciso alterar nada; vale ler o
-`forward` da `Head` e comparar com o Exercício 1.
+A célula abaixo traz a sua atenção reescrita em PyTorch, a biblioteca que sabe treinar redes neurais. A conta é
+a mesma da Parte 1; a única diferença é que agora Q, K e V são ajustados durante o treino. Ela também traz
+várias atenções em paralelo (cada uma pode procurar uma coisa diferente) e a etapa feed-forward. Só execute.
 """)
 
 ambos(r"""
-# [Executar]
+# @title [Executar] Atenção, várias atenções em paralelo e feed-forward, em PyTorch { display-mode: "form" }
 @dataclass
 class Config:
     vocab_size: int
@@ -307,9 +394,9 @@ class Head(nn.Module):
     # A mesma função atencao da Parte 1, agora em PyTorch.
     def __init__(self, cfg, head_size):
         super().__init__()
-        self.query = nn.Linear(cfg.n_embd, head_size, bias=False)   # W_Q
-        self.key   = nn.Linear(cfg.n_embd, head_size, bias=False)   # W_K
-        self.value = nn.Linear(cfg.n_embd, head_size, bias=False)   # W_V
+        self.query = nn.Linear(cfg.n_embd, head_size, bias=False)   # produz Q
+        self.key   = nn.Linear(cfg.n_embd, head_size, bias=False)   # produz K
+        self.value = nn.Linear(cfg.n_embd, head_size, bias=False)   # produz V
         self.register_buffer("tril", torch.tril(torch.ones(cfg.block_size, cfg.block_size)), persistent=False)
         self.dropout = nn.Dropout(cfg.dropout)
         self.att = None
@@ -317,11 +404,11 @@ class Head(nn.Module):
     def forward(self, x):
         B, T, C = x.shape
         q, k, v = self.query(x), self.key(x), self.value(x)
-        scores = q @ k.transpose(-2, -1) / math.sqrt(k.shape[-1])            # comparar
+        scores = q @ k.transpose(-2, -1) / math.sqrt(k.shape[-1])            # passo 1: comparar
         scores = scores.masked_fill(self.tril[:T, :T] == 0, float("-inf"))   # máscara
-        att = F.softmax(scores, dim=-1)                                      # pesos
+        att = F.softmax(scores, dim=-1)                                      # passo 2: pesar
         self.att = att.detach()                                              # guardado para os gráficos
-        return self.dropout(att) @ v                                         # média dos values
+        return self.dropout(att) @ v                                         # passo 3: misturar
 
 
 class MultiHeadAttention(nn.Module):
@@ -358,16 +445,13 @@ checagens.checa_head(Head)
 md(r"""
 ## 2.2 O bloco
 
-Falta juntar as duas etapas num bloco. Há um detalhe importante: cada etapa **soma** o seu resultado ao que já
-existia, em vez de substituir. Isso se chama conexão residual. Na prática, cada etapa só acrescenta um ajuste,
-e por isso dá para empilhar muitos blocos sem que o treino se perca.
+Falta juntar as duas etapas num bloco. O detalhe importante: cada etapa **soma** o seu resultado ao que já
+existia, em vez de substituir. É como revisar um texto fazendo anotações na margem, em vez de apagar tudo e
+reescrever. Isso se chama **conexão residual**, e é o que permite empilhar muitos blocos sem que o treino se
+perca.
 
-```
-x = x + atenção(x)
-x = x + feed-forward(x)
-```
-
-(No código, antes de cada etapa há uma normalização, `ln1` e `ln2`, que mantém os números numa escala boa.)
+Em código, "somar ao que já existia" é escrever `x = x + ...`. (As partes `ln1` e `ln2` só mantêm os números
+numa escala boa; não precisa se preocupar com elas.)
 """)
 
 exercicio(r"""
@@ -380,10 +464,9 @@ class Block(nn.Module):
         self.ffn = FeedForward(cfg)
 
     def forward(self, x):
-        # [Exercício 3] Duas linhas:
-        #   x = x + self.attn(self.ln1(x))
-        #   x = x + ... (a mesma ideia, com ln2 e ffn)
-        ...
+        # [Exercício 3] Troque os dois ___ por x
+        x = ___ + self.attn(self.ln1(x))     # etapa 1: atenção
+        x = ___ + self.ffn(self.ln2(x))      # etapa 2: feed-forward
         return x
 
 checagens.checa_block(Block)
@@ -397,8 +480,9 @@ class Block(nn.Module):
         self.ffn = FeedForward(cfg)
 
     def forward(self, x):
-        x = x + self.attn(self.ln1(x))
-        x = x + self.ffn(self.ln2(x))
+        # [Exercício 3] Troque os dois ___ por x
+        x = x + self.attn(self.ln1(x))       # etapa 1: atenção
+        x = x + self.ffn(self.ln2(x))        # etapa 2: feed-forward
         return x
 
 checagens.checa_block(Block)
@@ -414,11 +498,11 @@ md(r"""
 
 O modelo transforma cada caractere num vetor, soma um vetor que indica a **posição** (a atenção sozinha não sabe
 a ordem das palavras), passa tudo pelos blocos e, no fim, dá uma nota para cada caractere possível: a chance de
-ele ser o próximo. Treinar é ajustar tudo para que o caractere certo receba a nota mais alta.
+ele ser o próximo. Só execute.
 """)
 
 ambos(r"""
-# [Executar]
+# @title [Executar] O modelo GPT completo { display-mode: "form" }
 class GPT(nn.Module):
     def __init__(self, cfg):
         super().__init__()
@@ -453,6 +537,8 @@ class GPT(nn.Module):
 
     def n_params(self):
         return sum(p.numel() for p in self.parameters())
+
+print("Modelo pronto.")
 """)
 
 md(r"""
@@ -466,11 +552,11 @@ separador `|`, e precisa escrever os mesmos dígitos em ordem:
 ```
 
 Para escrever cada número da resposta, ele precisa procurar na entrada o menor número que ainda não usou. Isso é
-um trabalho de atenção.
+um trabalho de atenção. Ninguém vai ensinar essa regra ao modelo: ele só vê exemplos.
 """)
 
 ambos(r"""
-# [Executar] Treino, cerca de 30 segundos.
+# @title [Executar] Treina o modelo de ordenação (cerca de 30 segundos) { display-mode: "form" }
 from mini_gpt import batch_ordenacao, SORT_N, SORT_SEP
 rotulo = lambda i: "|" if i == SORT_SEP else str(i)
 
@@ -484,11 +570,11 @@ for passo in range(100 if RAPIDO else 2000):
     opt.zero_grad(); loss.backward(); opt.step()
     if passo % 400 == 0:
         print(f"passo {passo:4d} | erro {loss.item():.4f}")
-print(f"erro final {loss.item():.4f}")
+print(f"erro final {loss.item():.4f}  (quanto mais perto de zero, melhor)")
 """)
 
 ambos(r"""
-# [Executar] O modelo ordena 1000 sequências que nunca viu.
+# @title [Executar] O modelo ordena 1000 sequências que nunca viu { display-mode: "form" }
 @torch.no_grad()
 def ordena(modelo, nums):
     idx = torch.cat([nums, torch.full((nums.shape[0], 1), SORT_SEP, device=nums.device)], dim=1)
@@ -506,7 +592,7 @@ print("entrada:", exemplo[0].tolist(), "| resposta do modelo:", ordena(modelo_so
 """)
 
 ambos(r"""
-# [Executar] Para onde o modelo olhou enquanto escrevia a resposta?
+# @title [Executar] Para onde o modelo olhou enquanto escrevia a resposta? { display-mode: "form" }
 seq = torch.cat([exemplo, torch.tensor([[SORT_SEP]], device=device), ordena(modelo_sort, exemplo)], dim=1)[:, :-1]
 modelo_sort(seq)
 rot = [rotulo(i) for i in seq[0].tolist()]
@@ -518,14 +604,15 @@ plt.tight_layout(); plt.show()
 """)
 
 md(r"""
-Cada linha é um passo da resposta. Em pelo menos um dos gráficos, a parte mais escura de cada linha cai sobre o
-número da entrada que o modelo vai escrever em seguida. Ninguém programou essa regra: ela surgiu do treino.
+Cada linha é um passo da resposta; cada coluna, uma posição que o modelo pode olhar. Em pelo menos um dos
+gráficos, a parte mais escura de cada linha cai sobre o número da entrada que o modelo vai escrever em seguida.
+Ninguém programou essa regra: ela surgiu do treino.
 
 ---
 # Intervalo (5 min)
 
-Antes do intervalo, execute as duas primeiras células de código da Parte 3 (seções 3.1 e 3.2). O modelo de
-xadrez treina por cerca de seis minutos durante a pausa.
+Antes do intervalo, execute as duas primeiras células da Parte 3 (seções 3.1 e 3.2). O modelo de xadrez treina
+por cerca de seis minutos durante a pausa.
 """)
 
 # =============================================================================
@@ -540,7 +627,7 @@ Para o modelo, xadrez é só mais um texto. Usamos cerca de 60 mil partidas reai
 ```
 
 Cada lance é a letra da peça e a casa para onde ela vai: `N` é cavalo, `B` bispo, `R` torre, `Q` dama, `K`
-rei; peão não tem letra. `x` indica captura e `#` xeque-mate.
+rei; peão não tem letra. `x` indica captura e `#` xeque-mate. Não precisa saber jogar xadrez para esta parte.
 
 O modelo nunca vê o tabuleiro. Se mesmo assim ele jogar lances válidos, é porque aprendeu, só lendo, alguma noção
 de onde as peças estão.
@@ -566,10 +653,11 @@ md(r"""
 ## 3.2 Treino (cerca de 6 minutos)
 
 É exatamente o `GPT` da Parte 2. A tarefa é sempre a mesma: olhar o texto até aqui e prever o próximo caractere.
+O número "erro" deve cair ao longo do treino.
 """)
 
 ambos(r"""
-# [Executar]
+# @title [Executar] Treina o modelo de xadrez (cerca de 6 minutos) { display-mode: "form" }
 torch.manual_seed(0)
 cfg = Config(vocab_size=tok.vocab_size, block_size=256, n_layer=4, n_head=4, n_embd=128)
 modelo = GPT(cfg).to(device)
@@ -597,14 +685,12 @@ md(r"""
 
 O modelo começa com `;1.` e continua sozinho. Depois, conferimos lance por lance se as regras foram respeitadas.
 
-A **temperatura** controla o sorteio: com valores baixos (0.2) o modelo escolhe quase sempre o caractere mais
-provável; com valores altos (1.5) arrisca mais, e erra mais. Mude o valor e execute de novo.
+A **temperatura** controla o quanto o modelo arrisca: baixa (0.2), ele escolhe quase sempre o mais provável;
+alta (1.5), ele inventa mais, e erra mais. Mova o controle e execute de novo.
 """)
 
 ambos(r"""
-# [Executar]
-TEMPERATURA = 0.5   # experimente 0.2, 0.5, 1.0, 1.5
-
+# @title [Executar] Funções para gerar e conferir partidas { display-mode: "form" }
 def confere_partida(pgn):
     board = chess.Board()
     for token in pgn.lstrip(";").split():
@@ -622,6 +708,13 @@ def gera_partida(modelo, tok, temperatura):
     out = modelo.generate(idx, 300, temperature=temperatura, stop_token=tok.stoi["\n"])
     return tok.decode(out[0].tolist()).strip()
 
+print("Pronto.")
+""")
+
+ambos(r"""
+# @title [Executar] Gera três partidas
+TEMPERATURA = 0.5  # @param {type:"slider", min:0.1, max:1.5, step:0.1}
+
 for _ in range(3):
     pgn = gera_partida(modelo, tok, TEMPERATURA)
     print(pgn[:150], "\n   ->", confere_partida(pgn), "\n")
@@ -631,12 +724,12 @@ md(r"""
 ## 3.4 O seu modelo e o modelo de referência
 
 O modelo de referência usa o mesmo código, só que maior (cerca de 4,8 milhões de parâmetros) e treinado por uma
-hora. A medida abaixo é a fração de lances válidos que cada modelo faz jogando contra um adversário que sorteia
-lances.
+hora. A medida abaixo é a porcentagem de lances válidos que cada modelo faz jogando contra um adversário que
+sorteia lances.
 """)
 
 ambos(r"""
-# [Executar]
+# @title [Executar] Compara os dois modelos { display-mode: "form" }
 ref, tok_ref = modelo, tok      # se o arquivo não existir, seguimos com o seu modelo
 if os.path.exists("modelos/xadrez_referencia.pt"):
     ck = torch.load("modelos/xadrez_referencia.pt", map_location=device)
@@ -675,7 +768,7 @@ caractere do histórico na hora de escolher o próximo lance.
 """)
 
 ambos(r"""
-# [Executar]
+# @title [Executar] Atenção do modelo de referência numa partida { display-mode: "form" }
 prompt = ";1.e4 e5 2.Nf3 Nc6 3.Bb5 a6 4.Ba4 Nf6 5."
 idx = torch.tensor([tok_ref.encode(prompt)], device=device)
 with torch.no_grad():
