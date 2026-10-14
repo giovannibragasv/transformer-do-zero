@@ -56,7 +56,7 @@ class _Lacuna:
     __array_ufunc__ = None   # faz o NumPy delegar os operadores para esta classe
 
     def _erro(self, *args, **kwargs):
-        raise LacunaVazia("ainda há ___ no código. Troque cada ___ pela resposta indicada no comentário.")
+        raise LacunaVazia("ainda há ___ no código. Troque cada ___ pela resposta. Se precisar, abra a Dica logo abaixo da célula.")
 
     __call__ = __add__ = __radd__ = __matmul__ = __rmatmul__ = _erro
     __truediv__ = __rtruediv__ = __mul__ = __rmul__ = __sub__ = __rsub__ = _erro

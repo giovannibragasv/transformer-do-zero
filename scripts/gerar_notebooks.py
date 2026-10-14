@@ -47,8 +47,8 @@ tabuleiro: ele só lê partidas escritas como texto e aprende a prever o próxim
 
 - Para executar uma célula, clique nela e aperte **Shift + Enter**.
 - `[Executar]`: a célula está pronta; basta executá-la.
-- `[Exercício N]`: há uma lacuna `___` para trocar pela resposta. **A resposta está indicada no comentário da
-  própria célula.** Depois de executar, a célula diz se está correto.
+- `[Exercício N]`: há uma lacuna `___` para trocar pela resposta. Depois de executar, a célula diz se está
+  correto. **Se travar, abra a Dica logo abaixo do exercício**; se ainda assim não sair, abra a Resposta.
 - `[Recuperação]`: se algo der errado, carrega a solução pronta para você seguir adiante.
 - Algumas células aparecem só com um título, sem código. O código está escondido para não poluir a tela; se
   quiser ver, clique duas vezes no título.
@@ -171,17 +171,31 @@ O resultado é uma tabela: a linha diz quem pergunta, a coluna diz quem é consu
 """)
 
 exercicio(r"""
-# [Exercício 1, passo 1] Troque ___ por K.T
+# [Exercício 1, passo 1] Complete a lacuna ___ (a dica está logo abaixo)
 scores = Q @ ___ / np.sqrt(d_k)
 
 tabela("scores (comparações)", scores, palavras, palavras)
 checagens.checa_passo1(scores, Q, K)
 """, r"""
-# [Exercício 1, passo 1] Troque ___ por K.T
+# [Exercício 1, passo 1] Complete a lacuna ___ (a dica está logo abaixo)
 scores = Q @ K.T / np.sqrt(d_k)
 
 tabela("scores (comparações)", scores, palavras, palavras)
 checagens.checa_passo1(scores, Q, K)
+""")
+
+md(r"""
+<details><summary><b>Dica</b> (clique para abrir)</summary>
+
+Queremos comparar cada linha de `Q` com cada linha de `K`. Para isso, `K` precisa estar "deitada", isto é, transposta. Como se escreve a transposta no NumPy? O texto acima da célula explica.
+
+</details>
+
+<details><summary><b>Resposta</b> (só se a dica não bastar)</summary>
+
+`scores = Q @ K.T / np.sqrt(d_k)`
+
+</details>
 """)
 
 md(r"""
@@ -202,17 +216,31 @@ print(softmax(np.array([1.0, 2.0, 3.0])))      # o maior número leva o maior pe
 """)
 
 exercicio(r"""
-# [Exercício 1, passo 2] Troque ___ por softmax
+# [Exercício 1, passo 2] Complete a lacuna ___ (a dica está logo abaixo)
 pesos = ___(scores)
 
 tabela("pesos (cada linha soma 1)", pesos, palavras, palavras)
 checagens.checa_passo2(pesos, scores)
 """, r"""
-# [Exercício 1, passo 2] Troque ___ por softmax
+# [Exercício 1, passo 2] Complete a lacuna ___ (a dica está logo abaixo)
 pesos = softmax(scores)
 
 tabela("pesos (cada linha soma 1)", pesos, palavras, palavras)
 checagens.checa_passo2(pesos, scores)
+""")
+
+md(r"""
+<details><summary><b>Dica</b> (clique para abrir)</summary>
+
+A função que transforma números em porcentagens que somam 100% foi definida na célula logo acima.
+
+</details>
+
+<details><summary><b>Resposta</b> (só se a dica não bastar)</summary>
+
+`pesos = softmax(scores)`
+
+</details>
 """)
 
 md(r"""
@@ -226,17 +254,31 @@ de "rainha". Em Python, `pesos @ V` faz essa conta para todas as palavras de uma
 """)
 
 exercicio(r"""
-# [Exercício 1, passo 3] Troque ___ por V
+# [Exercício 1, passo 3] Complete a lacuna ___ (a dica está logo abaixo)
 saida = pesos @ ___
 
 tabela("saída (o que cada palavra recebeu)", saida, palavras)
 checagens.checa_passo3(saida, pesos, V)
 """, r"""
-# [Exercício 1, passo 3] Troque ___ por V
+# [Exercício 1, passo 3] Complete a lacuna ___ (a dica está logo abaixo)
 saida = pesos @ V
 
 tabela("saída (o que cada palavra recebeu)", saida, palavras)
 checagens.checa_passo3(saida, pesos, V)
+""")
+
+md(r"""
+<details><summary><b>Dica</b> (clique para abrir)</summary>
+
+Os pesos dizem quanto misturar de cada palavra. Das três tabelas (Q, K e V), qual guarda o conteúdo de cada palavra?
+
+</details>
+
+<details><summary><b>Resposta</b> (só se a dica não bastar)</summary>
+
+`saida = pesos @ V`
+
+</details>
 """)
 
 ambos(r"""
@@ -315,18 +357,32 @@ exatamente isso: `np.tril` (de *triangle lower*, triângulo de baixo). Basta ent
 
 exercicio(r"""
 def mascara_causal(T):
-    # [Exercício 2] Troque ___ por np.ones((T, T))
+    # [Exercício 2] Complete a lacuna ___ (a dica está logo abaixo)
     return np.tril(___)
 
 print(mascara_causal(5))
 checagens.checa_mascara(mascara_causal, atencao)
 """, r"""
 def mascara_causal(T):
-    # [Exercício 2] Troque ___ por np.ones((T, T))
+    # [Exercício 2] Complete a lacuna ___ (a dica está logo abaixo)
     return np.tril(np.ones((T, T)))
 
 print(mascara_causal(5))
 checagens.checa_mascara(mascara_causal, atencao)
+""")
+
+md(r"""
+<details><summary><b>Dica</b> (clique para abrir)</summary>
+
+`np.tril` zera tudo acima da diagonal, mas precisa receber uma tabela T por T cheia de 1s. Qual função do NumPy cria uma tabela de 1s? O tamanho vai entre parênteses duplos: `((T, T))`.
+
+</details>
+
+<details><summary><b>Resposta</b> (só se a dica não bastar)</summary>
+
+`return np.tril(np.ones((T, T)))`
+
+</details>
 """)
 
 ambos(r"""
@@ -465,7 +521,7 @@ class Block(nn.Module):
         self.ffn = FeedForward(cfg)
 
     def forward(self, x):
-        # [Exercício 3] Troque os dois ___ por x
+        # [Exercício 3] Complete as duas lacunas ___ (a dica está logo abaixo)
         x = ___ + self.attn(self.ln1(x))     # etapa 1: atenção
         x = ___ + self.ffn(self.ln2(x))      # etapa 2: feed-forward
         return x
@@ -481,12 +537,31 @@ class Block(nn.Module):
         self.ffn = FeedForward(cfg)
 
     def forward(self, x):
-        # [Exercício 3] Troque os dois ___ por x
+        # [Exercício 3] Complete as duas lacunas ___ (a dica está logo abaixo)
         x = x + self.attn(self.ln1(x))       # etapa 1: atenção
         x = x + self.ffn(self.ln2(x))        # etapa 2: feed-forward
         return x
 
 checagens.checa_block(Block)
+""")
+
+md(r"""
+<details><summary><b>Dica</b> (clique para abrir)</summary>
+
+"Somar ao que já existia": o que já existia é a própria entrada do bloco. Qual é o nome da variável que chega no `forward`?
+
+</details>
+
+<details><summary><b>Resposta</b> (só se a dica não bastar)</summary>
+
+As duas lacunas são `x`:
+
+```python
+x = x + self.attn(self.ln1(x))
+x = x + self.ffn(self.ln2(x))
+```
+
+</details>
 """)
 
 ambos(r"""

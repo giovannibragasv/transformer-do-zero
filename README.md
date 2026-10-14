@@ -10,6 +10,10 @@ Abra o notebook no Google Colab (é necessário apenas um navegador e uma conta 
 
 https://colab.research.google.com/github/giovannibragasv/transformer-do-zero/blob/main/workshop_aluno.ipynb
 
+Quem já programa e quer menos ajuda pode usar a versão desafio:
+
+https://colab.research.google.com/github/giovannibragasv/transformer-do-zero/blob/main/workshop_desafio.ipynb
+
 Em seguida, salve uma cópia no Drive (*Arquivo > Salvar uma cópia no Drive*) e ative a GPU
 (*Ambiente de execução > Alterar o tipo de ambiente de execução > T4 GPU*).
 
@@ -19,11 +23,12 @@ Em seguida, salve uma cópia no Drive (*Arquivo > Salvar uma cópia no Drive*) e
 |---|---|
 | `workshop_aluno.ipynb` | Notebook com três exercícios de lacuna e verificações automáticas |
 | `workshop_gabarito.ipynb` | Soluções |
+| `workshop_desafio.ipynb` | Versão desafio: seis exercícios (softmax, atenção, máscara, Head, MultiHead, Block), com dicas recolhidas |
 | `pretreino_referencia.ipynb` | Treino do modelo de referência (cerca de 60 min em uma T4) |
 | `mini_gpt.py` | Implementação de referência do modelo |
 | `checagens.py` | Verificações dos exercícios |
 | `data/xadrez.txt.gz` | Partidas do Lichess (2013), filtradas e validadas com python-chess |
-| `scripts/` | Preparação dos dados, pré-treino e geração dos notebooks |
+| `scripts/` | Preparação dos dados, pré-treino e geração dos notebooks (`gerar_notebooks.py` e `gerar_desafio.py`) |
 | `slides/` | Apresentação (`.key` e `.pptx`) e o script que gerou a primeira versão |
 | `docs/cola_xadrez.pdf` | Referência de xadrez de uma página para a Parte 3 |
 
