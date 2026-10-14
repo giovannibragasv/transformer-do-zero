@@ -29,7 +29,7 @@ Em seguida, salve uma cópia no Drive (*Arquivo > Salvar uma cópia no Drive*) e
 | `checagens.py` | Verificações dos exercícios |
 | `data/xadrez.txt.gz` | Partidas do Lichess (2013), filtradas e validadas com python-chess |
 | `scripts/` | Preparação dos dados, pré-treino e geração dos notebooks (`gerar_notebooks.py` e `gerar_desafio.py`) |
-| `slides/` | Apresentação (`.key` e `.pptx`) e o script que gerou a primeira versão |
+| `slides/` | Apresentação (`.pdf` e `.pptx`) e o script que gerou a primeira versão |
 | `docs/cola_xadrez.pdf` | Referência de xadrez de uma página para a Parte 3 |
 
 ## Reprodução

@@ -12,3 +12,6 @@ docs/*.toc
 .DS_Store
 node_modules/
 ministrante/
+
+# Keynote com as falas do ministrante nas notas (fica só local)
+slides/attention_workshop.key
