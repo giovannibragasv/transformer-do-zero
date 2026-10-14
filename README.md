@@ -17,20 +17,20 @@ Em seguida, salve uma cópia no Drive (*Arquivo > Salvar uma cópia no Drive*) e
 
 | Caminho | Descrição |
 |---|---|
-| `workshop_aluno.ipynb` | Notebook com seis exercícios e verificações automáticas |
+| `workshop_aluno.ipynb` | Notebook com três exercícios de lacuna e verificações automáticas |
 | `workshop_gabarito.ipynb` | Soluções |
 | `pretreino_referencia.ipynb` | Treino do modelo de referência (cerca de 60 min em uma T4) |
 | `mini_gpt.py` | Implementação de referência do modelo |
 | `checagens.py` | Verificações dos exercícios |
 | `data/xadrez.txt.gz` | Partidas do Lichess (2013), filtradas e validadas com python-chess |
 | `scripts/` | Preparação dos dados, pré-treino e geração dos notebooks |
-| `slides/` | Apresentação (`.pptx`) e seu script gerador |
+| `slides/` | Apresentação (`.key` e `.pptx`) e o script que gerou a primeira versão |
 | `docs/cola_xadrez.pdf` | Referência de xadrez de uma página para a Parte 3 |
 
 ## Reprodução
 
 ```
-python -m venv .venv && .venv/bin/pip install torch numpy matplotlib chess nbformat nbconvert ipykernel zstandard
+python -m venv .venv && .venv/bin/pip install torch numpy pandas matplotlib chess nbformat nbconvert ipykernel zstandard
 .venv/bin/python scripts/preparar_dados.py data_raw/*.pgn.zst -o data/xadrez.txt   # PGNs de database.lichess.org
 .venv/bin/python scripts/gerar_notebooks.py
 WORKSHOP_RAPIDO=1 .venv/bin/jupyter nbconvert --to notebook --execute workshop_gabarito.ipynb --output /tmp/teste.ipynb

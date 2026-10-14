@@ -220,8 +220,9 @@ Leia a tabela por linhas. A linha "rei" diz quanto o "rei" presta atenção em c
 
 ## 1.4 Passo 3: misturar
 
-Cada palavra recebe uma mistura dos values, usando os seus pesos. Se "rei" dá 50% de atenção a ele mesmo e 50% a
-"rainha", ele recebe metade do value de cada um. Em Python, `pesos @ V` faz isso para todas as palavras.
+Cada palavra recebe uma mistura dos values, usando os seus pesos. O "rei", por exemplo, dá 40% de atenção a ele
+mesmo, 20% a "protege" e 40% a "rainha"; então recebe 40% do value dele, 20% do value de "protege" e 40% do value
+de "rainha". Em Python, `pesos @ V` faz essa conta para todas as palavras de uma vez.
 """)
 
 exercicio(r"""
